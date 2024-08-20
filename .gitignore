@@ -1,0 +1,7 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/shalemServer/.vs
+/shalemServer/shalemServer/bin/Debug/net6.0
+/shalemServer/shalemServer/obj/Debug/net6.0
