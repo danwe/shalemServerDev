@@ -32,7 +32,10 @@ namespace shalemServer.Controllers
         }
 
         // GET: api/AspNetUsers/5
-        [HttpGet("{id}")]
+        [HttpGet("{id}")] 
+
+
+
         public async Task<ActionResult<AspNetUser>> GetAspNetUser(string id)
         {
           if (_context.AspNetUsers == null)
