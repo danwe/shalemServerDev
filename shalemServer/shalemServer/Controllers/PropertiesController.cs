@@ -30,6 +30,14 @@ namespace shalemServer.Controllers
                     Id = d.Id
                 })
                 .ToList();
+
+            var manaList = _context.Manas
+                .Select(d => new ListSkinny
+                {
+                    Name = d.Name,
+                    Id = d.Id
+                })
+                .ToList();
             var propertyStatusesList = _context.PropertyStatuses
                .Select(d => new ListSkinny
                {
@@ -68,7 +76,8 @@ namespace shalemServer.Controllers
                 DepartmentList = departmentList,
                 PropertyStatusesList = propertyStatusesList,
                 PropertyTypesList = propertyTypesList,
-                usersList = usersList
+                usersList = usersList,
+                manaList = manaList
             };
 
             var response = new ApiResponse<dynamic>
@@ -154,6 +163,7 @@ namespace shalemServer.Controllers
         }
         [HttpGet("listProperties")]
         public async Task<ActionResult<IEnumerable<Property>>> GetProperties(
+
             int pageNumber = 1,
             int pageSize = 10,
             string? sortColumn = "Id",
@@ -161,11 +171,42 @@ namespace shalemServer.Controllers
             string? filterPropertySite = null,
             string? filterNeighborhood = null)
             {
+
             if (_context.Properties == null)
             {
                 return NotFound();
             }
-
+            var usersList = _context.AspNetUsers
+               .Select(d => new UsersListShort
+               {
+                   Id = d.Id,
+                   UserName = d.UserName,
+                   LastName = d.LastName,
+                   FirstName = d.FirstName,
+                   IsActive = d.IsActive
+                  
+               })
+               .ToList();
+            var manaList = _context.Manas
+               .Select(d => new Mana
+               {
+                   Name = d.Name,
+                   Id = d.Id
+               })
+               .ToList();
+            var departmentList = _context.Departments
+               .Select(d => new ListSkinny
+               {
+                   Name = d.Name,
+                   Id = d.Id
+               })
+               .ToList();
+            var propertyTypesList = _context.PropertyTypes
+            .Select(d => new ListSkinny
+            {
+                Name = d.Name,
+                Id = d.Id
+            });
             // Build the query
             var query = _context.Properties.AsQueryable();
 
@@ -178,6 +219,13 @@ namespace shalemServer.Controllers
             {
                 query = query.Where(p => p.Neighborhood.Contains(filterNeighborhood));
             }
+            var propertyStatusesList = _context.PropertyStatuses
+               .Select(d => new ListSkinny
+               {
+                   Name = d.Name,
+                   Id = d.Id
+               })
+               .ToList();
 
             // Apply sorting
             query = sortDirection?.ToLower() == "desc"
@@ -190,7 +238,88 @@ namespace shalemServer.Controllers
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
+           
+            foreach (Property person in items)
+            {
+                if (person != null && person.CreatedById != null)
+                {
+                    UsersListShort aspNetUser = usersList.Where(id => (id.Id != null) && (id.Id == person.CreatedById)).ToList()[0];
+                    person.CreatedBy = new AspNetUser();
+                    person.CreatedBy.Id = aspNetUser.Id;
+                    person.CreatedBy.LastName = aspNetUser.LastName;
+                    person.CreatedBy.FirstName = aspNetUser.FirstName;
+                    person.CreatedBy.IsActive = aspNetUser.IsActive;
 
+                    UsersListShort aspNetUserUpdate = usersList.Where(id => (id.Id != null) && (id.Id == person.UpdatedById)).ToList()[0];
+
+                    person.UpdatedBy = new AspNetUser();
+                    person.UpdatedBy.Id = aspNetUserUpdate.Id;
+                    person.UpdatedBy.LastName = aspNetUserUpdate.LastName;
+                    person.UpdatedBy.FirstName = aspNetUserUpdate.FirstName;
+                    person.UpdatedBy.IsActive = aspNetUserUpdate.IsActive;
+
+                }
+                if (person != null && person.ManaId != null)
+                {
+                    person.Mana = new Mana();
+                    var matchingMana = manaList.FirstOrDefault(id => id.Id != null && id.Id == person.ManaId);
+
+                    if (matchingMana != null)
+                    {
+                        person.Mana = matchingMana;
+                    }
+                }
+                if (person != null && person.DepartmentId != null)
+                {
+                    person.Department = new Department();
+                    var matchingDepartment = departmentList.FirstOrDefault(id => id.Id != null && id.Id == person.DepartmentId);
+
+                    if (matchingDepartment != null)
+                    {
+                        person.Department.Id = matchingDepartment.Id;
+                        person.Department.Name = matchingDepartment.Name;
+                    }
+                }
+                if (person != null && person.PropertyTypeId != null)
+                {
+                    person.PropertyType = new PropertyType();
+                    var matchingpropertyTypet = propertyTypesList.FirstOrDefault(id => id.Id != null && id.Id == person.PropertyTypeId);
+
+                    if (matchingpropertyTypet != null)
+                    {
+                        person.PropertyType.Id = matchingpropertyTypet.Id;
+                        person.PropertyType.Name = matchingpropertyTypet.Name;
+                    }
+                }
+
+                if (person != null && person.PropertyStatusId != null)
+                {
+                    person.PropertyStatus = new PropertyStatus();
+                    var matchingPropertyStatus = propertyStatusesList.FirstOrDefault(id => id.Id != null && id.Id == person.PropertyStatusId);
+
+                    if (matchingPropertyStatus != null)
+                    {
+                        person.PropertyStatus.Id = matchingPropertyStatus.Id;
+                        person.PropertyStatus.Name = matchingPropertyStatus.Name;
+                    }
+                }
+                if (person != null && person.PropertyTypeId != null)
+                {
+                    person.Moded = new AspNetUser();
+                    var matchingModed = usersList.FirstOrDefault(id => id.Id != null && id.Id == person.ModedId);
+
+                    if (matchingModed != null)
+                    {
+                        person.Moded.Id = matchingModed.Id;
+                        person.Moded.Id = matchingModed.Id;
+                        person.Moded.LastName = matchingModed.LastName;
+                        person.Moded.FirstName = matchingModed.FirstName;
+                        person.Moded.IsActive = matchingModed.IsActive;
+                    }
+                }
+
+                // You can perform other operations here
+            }
             // Return paginated result
             return Ok(new
             {
