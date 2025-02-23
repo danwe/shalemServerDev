@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using shalemServer.Interfaces;
 using shalemServer.Models;
 
 namespace shalemServer.Controllers
@@ -14,10 +15,14 @@ namespace shalemServer.Controllers
     public class PropertiesController : ControllerBase
     {
         private readonly ShalemDbDevContext _context;
+        private readonly IManaRepository _manaRepository;
 
-        public PropertiesController(ShalemDbDevContext context)
+        
+
+        public PropertiesController(ShalemDbDevContext context, IManaRepository manaRepository)
         {
             _context = context;
+            _manaRepository = manaRepository;
         }
 
         [HttpGet("GetPropertyList")]
@@ -31,13 +36,15 @@ namespace shalemServer.Controllers
                 })
                 .ToList();
 
-            var manaList = _context.Manas
-                .Select(d => new ListSkinny
-                {
-                    Name = d.Name,
-                    Id = d.Id
-                })
-                .ToList();
+            var manaList = _manaRepository.GetAllManaAsync();
+
+                //= _context.Manas
+                //.Select(d => new ListSkinny
+                //{
+                //    Name = d.Name,
+                //    Id = d.Id
+                //})
+                //.ToList();
             var propertyStatusesList = _context.PropertyStatuses
                .Select(d => new ListSkinny
                {

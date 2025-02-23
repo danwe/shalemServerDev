@@ -12,6 +12,9 @@
         public string? Name { get; set; }
         public bool? IsDeleted { get; set; }
         public int PropCount { get; set; }
+
+        public int CityId { get; set; }
+
         public string? Status { get; set; }
     }
 }

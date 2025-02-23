@@ -105,6 +105,24 @@ namespace shalemServer.Controllers
             return aspNetUser;
         }
 
+        //[HttpGet("{GetUserByMail}")]
+        //public async Task<ActionResult<AspNetUser>> GetUserByMail(string email)
+        //{
+        //    if (_context.AspNetUsers == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    var aspNetUser = await _context.AspNetUsers.FindAsync(email);
+
+        //    if (aspNetUser == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return aspNetUser;
+        //}
+
+
         // PUT: api/AspNetUsers/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

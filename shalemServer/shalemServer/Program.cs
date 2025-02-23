@@ -3,7 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using shalemServer.Helper;
+using shalemServer.Helper.Mapper;
+using shalemServer.Interfaces;
 using shalemServer.Models;
+using shalemServer.Repository;
+using shalemServer.Services;
+using shalemServer.Services.Interfaces;
 using System.Configuration;
 using System.Text;
 
@@ -31,10 +36,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //Jwt configuration ends here
 
 
-// Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -71,6 +74,40 @@ builder.Services.AddDbContext<ShalemDbDevContext>(options =>
 });
 
 builder.Services.AddScoped<ShalemDbDevContext>();
+builder.Services.AddScoped<IloginRepository, LoginRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IUserServices, UsersServicve> ();
+builder.Services.AddScoped<ClaimService>();
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+
+});
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddAutoMapper(typeof(MappingProfile)); // Register AutoMapper with MappingProfile
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+    policy.WithOrigins("http://localhost:4200") // Replace with your Angular app's URL
+      .AllowAnyMethod()
+      .AllowAnyHeader()
+      .AllowCredentials();
+    });
+});
+
+// Register the repository
+builder.Services.AddScoped<IManaRepository>(provider =>
+    new ManaRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -81,9 +118,14 @@ if (app.Environment.IsDevelopment())
 }
 app.UseTokenValidationMiddleware();
 app.UseHttpsRedirection();
-app.UseCors(
-       options => options.WithOrigins("*").AllowAnyMethod()
-   );
+//app.UseCors(
+//       options => options.WithOrigins("*").AllowAnyMethod()
+//   );
+
+
+app.UseCors("AllowAngular");
+app.UseSession(); // Make sure this is added
+
 app.UseAuthorization();
 
 app.MapControllers();
