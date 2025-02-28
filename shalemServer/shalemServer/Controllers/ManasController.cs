@@ -67,7 +67,13 @@ namespace shalemServer.Controllers
             {
                 query = query.Where(m => m.Name.Contains(filter));
             }
-
+            var departmentList = _context.Departments
+             .Select(d => new ListSkinny
+             {
+                 Name = d.Name,
+                 Id = d.Id
+             })
+             .ToList();
             // Apply pagination
             var totalItems = await query.CountAsync();
             var manas = await query
@@ -84,8 +90,23 @@ namespace shalemServer.Controllers
                 })
                 .ToListAsync();
 
-            // Optionally return a paged response
-            var response = new
+
+            foreach (ManaDto mana in manas)
+            {
+                if (mana != null && mana.DepartmentId != null)
+                {
+                    mana.Department = new Department();
+                    var matchingDepartment = departmentList.FirstOrDefault(id => id.Id != null && id.Id == mana.DepartmentId);
+
+                    if (matchingDepartment != null)
+                    {
+                        mana.Department.Id = matchingDepartment.Id;
+                        mana.Department.Name = matchingDepartment.Name;
+                    }
+                }
+            }
+                // Optionally return a paged response
+                var response = new
             {
                 TotalItems = totalItems,
                 PageNumber = pageNumber,

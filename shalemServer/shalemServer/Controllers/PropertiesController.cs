@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using shalemServer.Interfaces;
 using shalemServer.Models;
+using shalemServer.Models.Dto;
 
 namespace shalemServer.Controllers
 {
@@ -36,15 +37,16 @@ namespace shalemServer.Controllers
                 })
                 .ToList();
 
-            var manaList = _manaRepository.GetAllManaAsync();
+           // var manaList = _manaRepository.GetAllManaAsync();
 
-                //= _context.Manas
-                //.Select(d => new ListSkinny
-                //{
-                //    Name = d.Name,
-                //    Id = d.Id
-                //})
-                //.ToList();
+            var manaList = _context.Manas
+                .Where(d => d.Name != null) // Exclude items with null Name
+                .Select(d => new ListSkinny
+                {
+                    Name = d.Name,
+                    Id = d.Id
+                })
+                .ToList();
             var propertyStatusesList = _context.PropertyStatuses
                .Select(d => new ListSkinny
                {
@@ -64,7 +66,7 @@ namespace shalemServer.Controllers
                  .Select(d => new UsersListShort
                  {
                      Id = d.Id,
-                     UserName = d.UserName,
+                     Name = d.FirstName + " " + d.LastName,
                      NormalizedUserName = d.NormalizedUserName,
                      Email = d.Email,
                      NormalizedEmail = d.NormalizedEmail,
@@ -77,14 +79,35 @@ namespace shalemServer.Controllers
                      IsActive = d.IsActive
                  })
                  .ToList();
-
+            var sartatList = _context.AspNetUsers
+                       .Where(a => _context.UserJobs.Any(uj => uj.ApplicationUserId == a.Id && uj.JobId == 4))
+                       
+                
+                 .Select(d => new UsersListShort
+                 {
+                     Id = d.Id,
+                     Name = d.FirstName + " " + d.LastName,
+                     NormalizedUserName = d.NormalizedUserName,
+                     Email = d.Email,
+                     NormalizedEmail = d.NormalizedEmail,
+                     PhoneNumber = d.PhoneNumber,
+                     PhoneNumberConfirmed = d.PhoneNumberConfirmed,
+                     LockoutEnd = d.LockoutEnd,
+                     LockoutEnabled = d.LockoutEnabled,
+                     FirstName = d.FirstName,
+                     LastName = d.LastName,
+                     IsActive = d.IsActive
+                 })
+                 .ToList();
             var combinedData = new
             {
                 DepartmentList = departmentList,
                 PropertyStatusesList = propertyStatusesList,
                 PropertyTypesList = propertyTypesList,
                 usersList = usersList,
-                manaList = manaList
+                manaList = manaList,
+                sartatList = sartatList
+
             };
 
             var response = new ApiResponse<dynamic>
@@ -137,19 +160,114 @@ namespace shalemServer.Controllers
             return NoContent();
         }
 
+        [HttpPost("password-change")]
+        public IActionResult passwordChange(PropertyDto property)
+        {
+            // Check if the request object is null
+            if (passwordChange == null)
+            {
+                return BadRequest("Invalid request.");
+            }
+            var response = new ApiResponse<dynamic>
+            {
+                Success = true,
+                Message = "Password changed successfully.",
+                Data = "send mail"
+            };
+            return Ok(response);
+        }
+            [HttpPost("TestCreateProperty")]
+        public async Task<ActionResult<Property>> TestCreateProperty()
+        {
+            Property property = new Property
+            {
+                DepartmentId = 3,
+            };
+
+            _context.Properties.Add(property);
+            await _context.SaveChangesAsync();
+
+            var response = new ApiResponse<dynamic>
+            {
+                Success = true,
+                Message = "Password changed successfully.",
+                Data = "send mail"
+            };
+            return Ok(response);
+        }
+
         [HttpPost("CreateProperty")]
-        public async Task<ActionResult<Property>> CreateProperty(Property property)
+        public async Task<ActionResult<Property>> CreateProperty([FromBody] PropertyDto property)
         {
             if (_context.Properties == null)
             {
                 return Problem("Entity set 'YourDbContext.Properties'  is null.");
             }
+            Property propertyNew = new Property();
+            propertyNew.BuildingNumber = property.BuildingNumber;
+            propertyNew.UpdatedById = property.UpdatedByID;
+            propertyNew.CreatedById = property.CreatedByID;
+            propertyNew.DateCreated = property.DateCreated;
+            propertyNew.DateUpdated = property.DateCreated;
+            propertyNew.DepartmentId = property.DepartmentId;
+            //propertyNew.PropertyTypeId = property.PropertyTypeId;
+            propertyNew.ModedId = property.Moded;
+            //propertyNew.SartatId = 2;
+            //propertyNew.PropertyStatusId = property.PropertyStatusId;
+            propertyNew.BuildingSite = property.BuildingSite;
+            propertyNew.PropertySite = property.PropertySite;
+            propertyNew.FloorNumber = property.FloorNumber;
+            propertyNew.HouseNumber = property.HouseNumber;
+            //propertyNew.IdentityNumber = property.IdentityNumber;
+            propertyNew.FirstName = property.FirstName;
+            propertyNew.LastName = property.LastName;
+            propertyNew.Phone1 = property.Phone1;
+            propertyNew.Phone2 = property.Phone2;
+            propertyNew.Phone3 = property.Phone3;
+            propertyNew.BuildingYear = property.BuildingYear;
+            propertyNew.DeliveryAddress = property.DeliveryAddress;
+            propertyNew.Street = property.Street;
+            propertyNew.PropertyStatusId = property.PropertyStatusId;
+            propertyNew.PropertyTypeId = property.PropertyTypeId;
 
-            _context.Properties.Add(property);
+            //public string? ContractNumber { get; set; }
+            //public decimal OldChargeArea { get; set; }
+            //public decimal OldMeasureArea { get; set; }
+            //public string Street { get; set; } = null!;
+            //public string? Contact2 { get; set; }
+            //public string BuildingNumber { get; set; } = null!;
+            //public bool? IsMedida { get; set; }
+            //public string? Mivnan { get; set; }
+            //public string? Neighborhood { get; set; }
+            //public string? UseType { get; set; }
+            //public DateTime? MeasureEnd { get; set; }
+            //public DateTime? MeasureStart { get; set; }
+            //public int? ManaId { get; set; }
+            //public string? MedidaComment { get; set; }
+            //public string? PropertyDetailes { get; set; }
+            //public string? Comments { get; set; }
+            //public string? Contact3 { get; set; }
+            //public bool? IsDeleted { get; set; }
+            //public string? NameOrder { get; set; }
+            //public string? OrderNumber { get; set; }
+            //public string? Phone4 { get; set; }
+
+            //public virtual AspNetUser? CreatedBy { get; set; }
+            //public virtual Department Department { get; set; } = null!;
+            //public virtual Mana? Mana { get; set; }
+            //public virtual AspNetUser? Moded { get; set; }
+            //public virtual PropertyStatus PropertyStatus { get; set; } = null!;
+            //public virtual PropertyType PropertyType { get; set; } = null!;
+            //public virtual AspNetUser? Sartat { get; set; }
+            //public virtual AspNetUser? UpdatedBy { get; set; }
+            //public virtual BuildingSoker? BuildingSoker { get; set; }
+            //public virtual FloorSoker? FloorSoker { get; set; }
+            //public virtual PropertySoker? PropertySoker { get; set; }
+            _context.Properties.Add(propertyNew);
             await _context.SaveChangesAsync();
 
             // Return the created property, with a 201 status code and a route to the created entity
-            return CreatedAtAction(nameof(GetProperty), new { id = property.Id }, property);
+            return CreatedAtAction(nameof(GetProperty), new { id = propertyNew.Id }, propertyNew);
         }
         // GET: api/Properties/5
         [HttpGet("{id}")]
@@ -171,6 +289,7 @@ namespace shalemServer.Controllers
         [HttpGet("listProperties")]
         public async Task<ActionResult<IEnumerable<Property>>> GetProperties(
 
+
             int pageNumber = 1,
             int pageSize = 10,
             string? sortColumn = "Id",
@@ -178,6 +297,7 @@ namespace shalemServer.Controllers
             string? filterPropertySite = null,
             string? filterNeighborhood = null)
             {
+            List<Property> itemsList;
 
             if (_context.Properties == null)
             {
@@ -187,7 +307,7 @@ namespace shalemServer.Controllers
                .Select(d => new UsersListShort
                {
                    Id = d.Id,
-                   UserName = d.UserName,
+                   Name = d.FirstName + " " + d.LastName,
                    LastName = d.LastName,
                    FirstName = d.FirstName,
                    IsActive = d.IsActive
@@ -241,11 +361,19 @@ namespace shalemServer.Controllers
 
             // Apply pagination
             var totalItems = await query.CountAsync();
-            var items = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-           
+            using (var context = new ShalemDbDevContext())
+            {
+                context.Database.SetCommandTimeout(300); // Set timeout to 5 minutes
+                itemsList = await query
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+            }
+
+            Property[] items = itemsList.ToArray();
+            {
+         
+}
             foreach (Property person in items)
             {
                 if (person != null && person.CreatedById != null)

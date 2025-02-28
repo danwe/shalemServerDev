@@ -1,18 +1,24 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using shalemServer.Models;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 [Route("api/[controller]")]
 [ApiController]
 public class ManaController : ControllerBase
 {
     private readonly string _connectionString;
+    private readonly ShalemDbDevContext _context;
 
-    public ManaController(IConfiguration configuration)
+
+    public ManaController(IConfiguration configuration, ShalemDbDevContext context)
     {
         _connectionString = configuration.GetConnectionString("DefaultConnection");
+        _context = context;
     }
     // GET: api/mana
     [HttpGet]
@@ -79,12 +85,70 @@ public class ManaController : ControllerBase
             }
         }
 
+        var departmentList = _context.Departments
+            .Select(d => new ListSkinny
+            {
+                Name = d.Name,
+                Id = d.Id
+            })
+            .ToList();
+        var usersList = _context.AspNetUsers
+               .Select(d => new UsersListShort
+               {
+                   Id = d.Id,
+                   Name  = d.FirstName + " " + d.LastName,
+                   NormalizedUserName = d.NormalizedUserName,
+                   Email = d.Email,
+                   NormalizedEmail = d.NormalizedEmail,
+                   PhoneNumber = d.PhoneNumber,
+                   PhoneNumberConfirmed = d.PhoneNumberConfirmed,
+                   LockoutEnd = d.LockoutEnd,
+                   LockoutEnabled = d.LockoutEnabled,
+                   FirstName = d.FirstName,
+                   LastName = d.LastName,
+                   IsActive = d.IsActive
+               })
+               .ToList();
+        foreach (Mana mana in manaList)
+        {
+            if (mana != null && mana.DepartmentId != null)
+            {
+                mana.Department = new Department();
+                var matchingDepartment = departmentList.FirstOrDefault(id => id.Id != null && id.Id == mana.DepartmentId);
+
+                if (matchingDepartment != null)
+                {
+                    mana.Department.Id = matchingDepartment.Id;
+                    mana.Department.Name = matchingDepartment.Name;
+                }
+            }
+            if (mana != null && mana.CreatedById != null)
+            {
+                UsersListShort aspNetUser = usersList.Where(id => (id.Id != null) && (id.Id == mana.CreatedById)).ToList()[0];
+                mana.CreatedBy = new AspNetUser();
+                mana.CreatedBy.Id = aspNetUser.Id;
+                mana.CreatedBy.LastName = aspNetUser.LastName;
+                mana.CreatedBy.FirstName = aspNetUser.FirstName;
+                mana.CreatedBy.IsActive = aspNetUser.IsActive;
+
+                UsersListShort aspNetUserUpdate = usersList.Where(id => (id.Id != null) && (id.Id == mana.UpdatedById)).ToList()[0];
+
+                mana.UpdatedBy = new AspNetUser();
+                mana.UpdatedBy.Id = aspNetUserUpdate.Id;
+                mana.UpdatedBy.LastName = aspNetUserUpdate.LastName;
+                mana.UpdatedBy.FirstName = aspNetUserUpdate.FirstName;
+                mana.UpdatedBy.IsActive = aspNetUserUpdate.IsActive;
+
+            }
+        }
+
+
         return Ok(new
         {
-            TotalRecords = totalRecords,
-            PageSize = pageSize,
+            TotalItems = totalRecords,
             PageNumber = pageNumber,
-            Mana = manaList
+            PageSize = pageSize,
+            Items = manaList
         });
     }
 }

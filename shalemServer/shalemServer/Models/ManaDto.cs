@@ -14,6 +14,7 @@
         public int PropCount { get; set; }
 
         public int CityId { get; set; }
+        public Department Department { get; set; } = null!;
 
         public string? Status { get; set; }
     }
