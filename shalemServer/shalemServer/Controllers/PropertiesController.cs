@@ -204,6 +204,10 @@ namespace shalemServer.Controllers
                 return Problem("Entity set 'YourDbContext.Properties'  is null.");
             }
             Property propertyNew = new Property();
+            if (property.Id > 0)
+            {
+                propertyNew = await _context.Properties.FindAsync(property.Id);
+            }
             propertyNew.BuildingNumber = property.BuildingNumber;
             propertyNew.UpdatedById = property.UpdatedByID;
             propertyNew.CreatedById = property.CreatedByID;
@@ -227,7 +231,11 @@ namespace shalemServer.Controllers
             propertyNew.BuildingYear = property.BuildingYear;
             propertyNew.DeliveryAddress = property.DeliveryAddress;
             propertyNew.Street = property.Street;
-            propertyNew.PropertyStatusId = property.PropertyStatusId;
+            if (property.PropertyStatusId > 0)
+            {
+                propertyNew.PropertyStatusId = property.PropertyStatusId;
+
+            }
             propertyNew.PropertyTypeId = property.PropertyTypeId;
 
             //public string? ContractNumber { get; set; }
@@ -263,7 +271,20 @@ namespace shalemServer.Controllers
             //public virtual BuildingSoker? BuildingSoker { get; set; }
             //public virtual FloorSoker? FloorSoker { get; set; }
             //public virtual PropertySoker? PropertySoker { get; set; }
-            _context.Properties.Add(propertyNew);
+            if (property.Id > 0)
+            {
+                propertyNew.DateUpdated = DateTime.Now;
+                _context.Properties.Update(propertyNew);
+            }
+            else 
+            {
+                propertyNew.DateCreated = DateTime.Now;
+                propertyNew.DateUpdated = DateTime.Now;
+
+                _context.Properties.Add(propertyNew);
+            }
+
+
             await _context.SaveChangesAsync();
 
             // Return the created property, with a 201 status code and a route to the created entity
@@ -292,8 +313,8 @@ namespace shalemServer.Controllers
 
             int pageNumber = 1,
             int pageSize = 10,
-            string? sortColumn = "Id",
-            string? sortDirection = "asc",
+            string? sortColumn = "DateUpdated",
+            string? sortDirection = "DESC",
             string? filterPropertySite = null,
             string? filterNeighborhood = null)
             {

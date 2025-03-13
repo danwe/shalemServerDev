@@ -3,6 +3,8 @@
 
     public class PropertyDto
     {
+        public int? Id { get; set; } = 0;
+
         public string? BuildingNumber { get; set; } = string.Empty;
         public string? BuildingSite { get; set; } = string.Empty;
         public int? BuildingYear { get; set; } = 0;
@@ -11,6 +13,8 @@
         public string? Contact2 { get; set; } = string.Empty;
         public string? ContractNumber { get; set; } = string.Empty;
         public string? CreatedByID { get; set; } = string.Empty;
+        public string? CreatedBy { get; set; } = string.Empty;
+
         public DateTime? DateCreated { get; set; }
         public DateTime? DateUpdated { get; set; }
         public string? DeliveryAddress { get; set; } = string.Empty;
@@ -45,6 +49,8 @@
         public string? Sartat { get; set; } = string.Empty;
         public string? Street { get; set; } = string.Empty;
         public string?       UpdatedByID { get; set; } = string.Empty;
+        public string? UpdatedBy { get; set; } = string.Empty;
+
         public IFormFile? UploadFiles { get; set; } // For file uploads
     }
 

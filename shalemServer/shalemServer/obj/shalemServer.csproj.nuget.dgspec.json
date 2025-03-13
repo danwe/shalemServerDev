@@ -54,6 +54,10 @@
               "target": "Package",
               "version": "[13.0.1, )"
             },
+            "ClosedXML": {
+              "target": "Package",
+              "version": "[0.104.2, )"
+            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[6.0.28, )"
@@ -101,6 +105,14 @@
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
               "version": "[6.35.0, )"
+            },
+            "nClam": {
+              "target": "Package",
+              "version": "[6.0.1, )"
+            },
+            "nClam.Net": {
+              "target": "Package",
+              "version": "[0.0.3, )"
             }
           },
           "imports": [
